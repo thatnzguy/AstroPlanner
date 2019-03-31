@@ -1,6 +1,6 @@
 //[Row][Column]
 //@customFunction
-function getDependencies(moduleName, ModuleData, SmelterData) {
+function getDependencies(moduleName, ModuleData, BasicResourceData, SmelterData) {
   
   var returnText = "";
   var totalDependencies = [];
@@ -9,26 +9,71 @@ function getDependencies(moduleName, ModuleData, SmelterData) {
   stack.push(moduleName);
     
   while (stack.length > 0){    
+    //returnText += "[S:" + stack + "]";
     var item = stack.pop();
+    
+    //See if it's a basic resource
+    if (getBasicResource(BasicResourceData, item)) {
+      totalDependencies.push(item);
+      //returnText += "[BR:" + item + "]";
+      
+      continue;
+    }
     
     //Find if it's a machine, and get the resources
     var moduleResources =[];
     moduleResources = getModuleResources(ModuleData, item);
     if (moduleResources.length > 0){
-      stack = stack.concat(resources);
+      
+      if (totalDependencies.indexOf(item) == -1) {
+        totalDependencies.push(item);
+      }
+      stack = stack.concat(moduleResources);
       continue;
     }
-            
-    //See if it's a basic resource
     
     //Check Smelting
-    for(var i = 0; i < stack.length; i++){
-      //TODO find the resource in smelter
-      returnText += stack[i];
+    var resource = getSmeltedResources(SmelterData, item);
+    if (resource){
+      if (totalDependencies.indexOf("Smelting Furnace") == -1) {
+        totalDependencies.push("Smelting Furnace");
+        stack.push("Smelting Furnace");
+      }
+      stack.push(resource);
+      continue;
     }
+    returnText += "||";
+//    //didnt find anything, Dump the stack
+//    returnText += " STACK_UNDERFLOW: ";
+//    for(var i = 0; i < stack.length; i++){
+//      returnText += stack[i];
+//    }
+  }
+  
+  for (var i = 0; i < totalDependencies.length; i++){
+    returnText += totalDependencies[i];
+    returnText += ",";
   }
   
   return returnText;
+}
+
+function getBasicResource(BasicResourceData, resource){
+  for (var i = 0; i < BasicResourceData.length; i++){
+    if (BasicResourceData[i][0] == resource){
+      return true;
+    } 
+  }
+  return false;
+}
+
+function getSmeltedResources(SmelterData, resource){
+  for (var i = 0; i < SmelterData.length; i++){
+    if (SmelterData[i][0] == resource){
+      return SmelterData[i][1];
+    } 
+  }
+  return false;
 }
 
 function getModuleResources(ModuleData, moduleName){
@@ -43,8 +88,15 @@ function getModuleResources(ModuleData, moduleName){
     } 
     index++;
   }
+  
   //Find resources for module
-  var resources = ModuleData[moduleRow][4].split(","); 
+  var resources = [];
+  
+  if (moduleRow == -1){
+    return resources;
+  }
+  
+  resources = ModuleData[moduleRow][4].split(","); 
     
   
   return resources;
