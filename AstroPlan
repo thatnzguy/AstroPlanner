@@ -1,0 +1,51 @@
+//[Row][Column]
+//@customFunction
+function getDependencies(moduleName, ModuleData, SmelterData) {
+  
+  var returnText = "";
+  var totalDependencies = [];
+  var stack = [];
+   
+  stack.push(moduleName);
+    
+  while (stack.length > 0){    
+    var item = stack.pop();
+    
+    //Find if it's a machine, and get the resources
+    var moduleResources =[];
+    moduleResources = getModuleResources(ModuleData, item);
+    if (moduleResources.length > 0){
+      stack = stack.concat(resources);
+      continue;
+    }
+            
+    //See if it's a basic resource
+    
+    //Check Smelting
+    for(var i = 0; i < stack.length; i++){
+      //TODO find the resource in smelter
+      returnText += stack[i];
+    }
+  }
+  
+  return returnText;
+}
+
+function getModuleResources(ModuleData, moduleName){
+  //Find Module
+  var index = 0;  
+  var moduleRow = -1;  
+  //TODO: check all rows until one is empty
+  while(index < 40) {
+    if (ModuleData[index][0] == moduleName){
+      moduleRow = index;
+      break;
+    } 
+    index++;
+  }
+  //Find resources for module
+  var resources = ModuleData[moduleRow][4].split(","); 
+    
+  
+  return resources;
+}
